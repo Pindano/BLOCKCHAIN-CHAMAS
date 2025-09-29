@@ -29,12 +29,7 @@ const ONBOARDING_STEPS = [
     id: 2,
     title: "Member Info",
     description: "Provide your details",
-  },
-  {
-    id: 3,
-    title: "Complete",
-    description: "Join the community",
-  },
+  }
 ]
 
 export function ChamaOnboardingApp() {
@@ -76,7 +71,7 @@ export function ChamaOnboardingApp() {
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-foreground mb-4 text-balance">Welcome to Chama DAO</h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto text-pretty">
-            Join our decentralized cooperative investment community. Start by creating your wallet and providing your
+            Join our DAO platform. Start by creating your wallet and providing your
             member information.
           </p>
         </div>
