@@ -1,12 +1,20 @@
 "use client"
 
-import Providers from "@/components/providers"
-import { ChamaOnboardingApp } from "@/components/chama-onboarding-app"
+import { useEffect } from "react"
+import { useIsSignedIn } from "@coinbase/cdp-hooks"
+import { useRouter } from "next/navigation"
 
 export default function Home() {
-  return (
-    <Providers>
-      <ChamaOnboardingApp />
-    </Providers>
-  )
+  const { isSignedIn } = useIsSignedIn()
+  const router = useRouter()
+
+  useEffect(() => {
+    if (isSignedIn) {
+      router.push("/dashboard")
+    } else {
+      router.push("/auth")
+    }
+  }, [isSignedIn, router])
+
+  return <div className="min-h-screen bg-background" />
 }

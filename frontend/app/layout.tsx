@@ -1,15 +1,10 @@
 import type React from "react"
-import type { Metadata } from "next"
-
-
-import { Suspense } from "react"
+import { Geist, Geist_Mono } from "next/font/google"
+import { Providers } from "@/components/providers"
 import "./globals.css"
+const _geist = Geist({ subsets: ["latin"] })
+const _geistMono = Geist_Mono({ subsets: ["latin"] })
 
-export const metadata: Metadata = {
-  title: "Chama DAO - Cooperative Investment Platform",
-  description: "Join our decentralized autonomous cooperative for community-driven investments",
-  
-}
 
 export default function RootLayout({
   children,
@@ -18,10 +13,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>
-        <Suspense fallback={null}>{children}</Suspense>
-        
+      <body className={`font-sans antialiased`}>
+        <Providers>{children}</Providers>
       </body>
     </html>
   )
 }
+
