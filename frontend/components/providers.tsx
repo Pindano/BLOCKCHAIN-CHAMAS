@@ -1,25 +1,20 @@
-"use client";
+"use client"
 
-import { CDPReactProvider } from "@coinbase/cdp-react/components/CDPReactProvider";
-import { theme } from "@/components/theme";
+import { CDPReactProvider } from "@coinbase/cdp-react"
+import type React from "react"
 
-interface ProvidersProps {
-  children: React.ReactNode;
-}
-
-const CDP_CONFIG = {
-  projectId: process.env.NEXT_PUBLIC_CDP_PROJECT_ID ?? "",
-};
-
-const APP_CONFIG = {
-  name: "Chama Dao",
-  logoUrl: "http://localhost:3000/logo.svg",
-};
-
-export default function Providers({ children }: ProvidersProps) {
+export function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <CDPReactProvider config={CDP_CONFIG} app={APP_CONFIG} theme={theme}>
+    <CDPReactProvider
+      config={{
+        projectId: process.env.NEXT_PUBLIC_CDP_PROJECT_ID || "",
+        ethereum: {
+          createOnLogin: "eoa",
+        },
+        appName: "Chama DAO",
+      }}
+    >
       {children}
     </CDPReactProvider>
-  );
+  )
 }
