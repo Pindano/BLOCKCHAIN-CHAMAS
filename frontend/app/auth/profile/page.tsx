@@ -85,6 +85,22 @@ export default function ProfilePage() {
 
       console.log("[v0] User created successfully:", data)
 
+      // Force a small delay to ensure DB replication, then verify user exists
+      await new Promise(resolve => setTimeout(resolve, 500))
+
+      // Verify user was created
+      const { data: verifyUser } = await supabase
+        .from("users")
+        .select("user_id")
+        .eq("wallet_address", evmAddress)
+        .single()
+
+      if (!verifyUser) {
+        throw new Error("User creation failed. Please try again.")
+      }
+
+      console.log("[v0] User verified, redirecting to dashboard")
+
       // Clear session storage and redirect to dashboard
       sessionStorage.removeItem("email")
       router.push("/dashboard")
@@ -176,4 +192,3 @@ export default function ProfilePage() {
     </main>
   )
 }
-

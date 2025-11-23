@@ -1,0 +1,10 @@
+{
+  "dependencies": {
+    "@helia/http": "^3.0.8"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "@types/react": "^19.2.5",
+    "typescript": "^5.9.3"
+  }
+}

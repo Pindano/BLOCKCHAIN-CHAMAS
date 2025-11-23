@@ -1,55 +1,111 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
-import {ChamaDAO} from "./ChamaDAO.sol";
+
+import "@openzeppelin/contracts/proxy/Clones.sol";
+import "./ChamaMembershipToken.sol";
+import "./ChamaGovernor.sol";
 
 contract ChamaFactory {
-    event ChamaCreated(
-        address indexed chamaAddress,
-        string name,
-        address indexed creator,
-        string ipfsConstitutionCID
-    );
-    
+    address public immutable tokenImplementation;
+    address public immutable governorImplementation;
+
+    struct ChamaInfo {
+        address membershipToken;
+        address governor;
+        address[] founders;
+        uint256 createdAt;
+        string name;
+        address bankObserver;
+    }
+
+    ChamaInfo[] public chamas;
+    mapping(address => uint256) public chamaIndex;
     mapping(address => address[]) public userChamas;
-    address[] public allChamas;
-    uint256 public chamaCount;
-    
+
+    event ChamaCreated(
+        address indexed governor,
+        address indexed membershipToken,
+        address[] founders,
+        string name,
+        address bankObserver,
+        uint256 chamaId
+    );
+
+    constructor() {
+        tokenImplementation   = address(new ChamaMembershipToken());
+        governorImplementation = address(new ChamaGovernor());
+    }
+
     function createChama(
-        string memory _name,
-        address[] memory _initialMembers,
-        uint256 _votingPeriod,
-        uint256 _quorumPercentage,
-        string memory _ipfsConstitutionCID
-    ) external returns (address) {
-        require(_initialMembers.length > 0, "Need initial members");
-        
-        ChamaDAO newChama = new ChamaDAO(
-            _name,
-            _initialMembers,
-            _votingPeriod,
-            _quorumPercentage,
-            _ipfsConstitutionCID,
-            msg.sender
-        );
-        
-        address chamaAddress = address(newChama);
-        allChamas.push(chamaAddress);
-        chamaCount++;
-        
-        for (uint256 i = 0; i < _initialMembers.length; i++) {
-            userChamas[_initialMembers[i]].push(chamaAddress);
+        string memory chamaName,
+        string memory tokenSymbol,
+        address[] memory founders,
+        address bankObserver
+    ) external returns (address governorAddress, address tokenAddress) {
+        require(founders.length > 0 && founders.length <= 100, "Invalid founders");
+        require(bankObserver != address(0), "Invalid bank");
+
+        for (uint i = 0; i < founders.length; i++) {
+            require(founders[i] != address(0), "Zero address");
+            for (uint j = i + 1; j < founders.length; j++) {
+                require(founders[i] != founders[j], "Duplicate");
+            }
         }
-        
-        emit ChamaCreated(chamaAddress, _name, msg.sender, _ipfsConstitutionCID);
-        return chamaAddress;
+
+        address tokenClone = Clones.clone(tokenImplementation);
+        ChamaMembershipToken(payable(tokenClone)).initialize(
+            string.concat(chamaName, " Membership"),
+            tokenSymbol
+        );
+
+        address governorClone = Clones.clone(governorImplementation);
+        ChamaGovernor(payable(governorClone)).initialize(
+            IVotes(tokenClone),
+            chamaName,
+            bankObserver
+        );
+
+        ChamaMembershipToken(tokenClone).initializeGovernor(governorClone, founders);
+
+        uint256 chamaId = chamas.length;
+        for (uint i = 0; i < founders.length; i++) {
+            userChamas[founders[i]].push(governorClone);
+        }
+
+        ChamaInfo memory info = ChamaInfo({
+            membershipToken: tokenClone,
+            governor: governorClone,
+            founders: founders,
+            createdAt: block.timestamp,
+            name: chamaName,
+            bankObserver: bankObserver
+        });
+
+        chamaIndex[governorClone] = chamaId;
+        chamas.push(info);
+
+        emit ChamaCreated(governorClone, tokenClone, founders, chamaName, bankObserver, chamaId);
+
+        return (governorClone, tokenClone);
     }
-    
-    function getUserChamas(address _user) external view returns (address[] memory) {
-        return userChamas[_user];
+
+    function getAllChamas() external view returns (ChamaInfo[] memory) { return chamas; }
+    function getChamaById(uint256 id) external view returns (ChamaInfo memory) {
+        require(id < chamas.length, "Invalid ID"); return chamas[id];
     }
-    
-    function getAllChamas() external view returns (address[] memory) {
-        return allChamas;
+    function getChamaByGovernor(address gov) external view returns (ChamaInfo memory) {
+        uint256 idx = chamaIndex[gov];
+        require(chamas[idx].governor == gov, "Not found"); return chamas[idx];
+    }
+    function getUserChamas(address user) external view returns (address[] memory) { return userChamas[user]; }
+    function getUserChamaCount(address user) external view returns (uint256) { return userChamas[user].length; }
+    function getChamaCount() external view returns (uint256) { return chamas.length; }
+    function isFounder(address user, address gov) external view returns (bool) {
+        uint256 idx = chamaIndex[gov];
+        if (chamas[idx].governor != gov) return false;
+        for (uint i = 0; i < chamas[idx].founders.length; i++) {
+            if (chamas[idx].founders[i] == user) return true;
+        }
+        return false;
     }
 }
-

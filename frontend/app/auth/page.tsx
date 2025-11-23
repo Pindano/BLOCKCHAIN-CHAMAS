@@ -80,7 +80,23 @@ export default function AuthPage() {
               <Button type="submit" className="w-full" disabled={loading}>
                 {loading ? "Sending OTP..." : "Send OTP"}
               </Button>
-              
+              <div className="text-sm text-center text-muted-foreground">
+                {isSignUp ? (
+                  <>
+                    Already have an account?{" "}
+                    <button type="button" onClick={() => setIsSignUp(false)} className="text-primary hover:underline">
+                      Sign in
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    Don't have an account?{" "}
+                    <button type="button" onClick={() => setIsSignUp(true)} className="text-primary hover:underline">
+                      Sign up
+                    </button>
+                  </>
+                )}
+              </div>
             </form>
           </CardContent>
         </Card>
@@ -88,4 +104,3 @@ export default function AuthPage() {
     </main>
   )
 }
-

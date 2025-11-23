@@ -1,22 +1,28 @@
-import type React from "react"
-import { Geist, Geist_Mono } from "next/font/google"
-import { Providers } from "@/components/providers"
+import type { Metadata } from "next"
 import "./globals.css"
-const _geist = Geist({ subsets: ["latin"] })
-const _geistMono = Geist_Mono({ subsets: ["latin"] })
+import { Providers } from "@/components/providers"
+import { Toaster } from "sonner"
+import { Navbar } from "@/components/Navbar"
 
+export const metadata: Metadata = {
+  title: "ChamaDao - Save with people you trust",
+  description: "Decentralized savings groups",
+}
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode
-}>) {
+}) {
   return (
-    <html lang="en">
-      <body className={`font-sans antialiased`}>
-        <Providers>{children}</Providers>
+    <html lang="en" suppressHydrationWarning>
+      <body className="antialiased">
+        <Providers>
+          <Navbar />
+          {children}
+          <Toaster position="top-center" richColors />
+        </Providers>
       </body>
     </html>
   )
 }
-
